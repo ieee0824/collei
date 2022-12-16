@@ -1,9 +1,11 @@
 package aggregator
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -96,6 +98,68 @@ func TestNewContainer(t *testing.T) {
 			assert.NotNil(t, result.aggregatedLogStrPipe)
 			assert.Equal(t, test.want.maxCount, result.maxCount)
 			assert.Equal(t, test.want.emitDuration, result.emitDuration)
+		})
+	}
+}
+
+func TestContainer_add(t *testing.T) {
+	tests := []struct {
+		name string
+		opt  *containerOpt
+		in   []string
+		want int
+	}{
+		{
+			name: "毎回送信される",
+			opt: &containerOpt{
+				emitDuration: 1000 * time.Hour,
+				maxCount:     0,
+			},
+			in: lo.Map([]int{0, 1, 2, 3}, func(i int, _ int) string {
+				return fmt.Sprint(i)
+			}),
+		}, {
+			name: "カウントを超えないので送信されない",
+			opt: &containerOpt{
+				emitDuration: 1000 * time.Hour,
+				maxCount:     1000,
+			},
+			in: lo.Map([]int{0, 1, 2, 3}, func(i int, _ int) string {
+				return fmt.Sprint(i)
+			}),
+			want: 4,
+		}, {
+			name: "一部送信される",
+			opt: &containerOpt{
+				emitDuration: 1000 * time.Hour,
+				maxCount:     3,
+			},
+			in: lo.Map([]int{0, 1, 2, 3}, func(i int, _ int) string {
+				return fmt.Sprint(i)
+			}),
+			want: 1,
+		}, {
+			name: "全部送信された",
+			opt: &containerOpt{
+				emitDuration: 1000 * time.Hour,
+				maxCount:     4,
+			},
+			in: lo.Map([]int{0, 1, 2, 3}, func(i int, _ int) string {
+				return fmt.Sprint(i)
+			}),
+			want: 0,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			testContainer := newContainer[string](test.opt)
+
+			for _, v := range test.in {
+				testContainer.add(v)
+			}
+
+			assert.Equal(t, test.want, len(testContainer.elems))
 		})
 	}
 }
