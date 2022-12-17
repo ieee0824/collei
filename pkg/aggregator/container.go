@@ -29,8 +29,9 @@ func (impl *containerOpt) getEmitDuration() time.Duration {
 	return impl.emitDuration
 }
 
-func newContainer[T any](pipe chan<- string, opt *containerOpt) *container[T] {
+func newContainer[T any](key string, pipe chan<- string, opt *containerOpt) *container[T] {
 	c := &container[T]{
+		key:                  key,
 		mut:                  sync.Mutex{},
 		elems:                []*T{},
 		aggregatedLogStrPipe: pipe,
@@ -48,6 +49,7 @@ type container[T any] struct {
 	aggregatedLogStrPipe chan<- string
 	maxCount             int
 	emitDuration         time.Duration
+	key                  string
 }
 
 func (impl *container[T]) add(t *T) {
@@ -91,9 +93,11 @@ func (impl *container[T]) string() string {
 	})
 
 	buf := new(bytes.Buffer)
-	json.NewEncoder(buf).Encode(lo.Filter(strs, func(s string, _ int) bool {
-		return s != ""
-	}))
+	json.NewEncoder(buf).Encode(map[string][]string{
+		impl.key: lo.Filter(strs, func(s string, _ int) bool {
+			return s != ""
+		}),
+	})
 
 	return buf.String()
 }

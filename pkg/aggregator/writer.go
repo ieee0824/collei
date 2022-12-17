@@ -80,6 +80,7 @@ func (impl *writer[T]) Write(b []byte) (int, error) {
 	_, exists := impl.containers[key]
 	if !exists {
 		impl.containers[key] = newContainer[T](
+			key,
 			impl.aggregatedLogStrPipe,
 			&containerOpt{
 				maxCount:     impl.maxCount,

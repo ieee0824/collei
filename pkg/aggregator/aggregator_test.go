@@ -10,9 +10,10 @@ import (
 
 func TestNew(t *testing.T) {
 	tests := []struct {
-		name string
-		opt  OptFunc[string]
-		want *writer[string]
+		name         string
+		opt          OptFunc[string]
+		want         *writer[string]
+		genKeyResult string
 	}{
 		{
 			name: "opt funcを指定しない",
