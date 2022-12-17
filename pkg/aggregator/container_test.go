@@ -91,7 +91,7 @@ func TestNewContainer(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result := newContainer[any](test.opt)
+			result := newContainer[any](make(chan string), test.opt)
 
 			assert.NotNil(t, result.elems)
 			assert.Equal(t, 0, len(result.elems))
@@ -153,7 +153,7 @@ func TestContainer_add(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			testContainer := newContainer[string](test.opt)
+			testContainer := newContainer[string](make(chan string, 1024), test.opt)
 
 			for _, v := range test.in {
 				testContainer.add(v)

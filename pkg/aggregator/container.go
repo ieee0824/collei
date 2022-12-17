@@ -29,11 +29,11 @@ func (impl *containerOpt) getEmitDuration() time.Duration {
 	return impl.emitDuration
 }
 
-func newContainer[T any](opt *containerOpt) *container[T] {
+func newContainer[T any](pipe chan<- string, opt *containerOpt) *container[T] {
 	return &container[T]{
 		mut:                  sync.Mutex{},
 		elems:                []*T{},
-		aggregatedLogStrPipe: make(chan string, 1024),
+		aggregatedLogStrPipe: pipe,
 		maxCount:             opt.getMaxCount(),
 		emitDuration:         opt.getEmitDuration(),
 	}
@@ -42,7 +42,7 @@ func newContainer[T any](opt *containerOpt) *container[T] {
 type container[T any] struct {
 	mut                  sync.Mutex
 	elems                []*T
-	aggregatedLogStrPipe chan string
+	aggregatedLogStrPipe chan<- string
 	maxCount             int
 	emitDuration         time.Duration
 }
