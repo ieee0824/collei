@@ -31,7 +31,7 @@ func newWriter[T any](w io.Writer, opt *Opt[T]) *writer[T] {
 		containers:           map[string]*container[T]{},
 		maxCount:             opt.MaxCnt,
 		emitDuration:         opt.EmitDuration,
-		aggregatedLogStrPipe: make(chan string, 1024),
+		aggregatedLogStrPipe: make(chan string, 65536),
 		w:                    w,
 	}
 
