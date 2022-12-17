@@ -1,23 +1,71 @@
 package aggregator
 
-import "time"
+import (
+	"encoding/json"
+	"io"
+	"log"
+	"time"
+)
 
-func newWriter[T any](pipe chan<- string) *writer[T] {
-	return &writer[T]{
-		containers:           map[string]*container[T]{},
-		maxCount:             10,
-		emitDuration:         1 * time.Minute,
-		aggregatedLogStrPipe: pipe,
+func jsonParser[T any](b []byte) (*T, error) {
+	var ret T
+
+	if err := json.Unmarshal(b, &ret); err != nil {
+		return nil, err
 	}
+
+	return &ret, nil
+}
+
+type Opt[T any] struct {
+	Format       string
+	KeyGenerator KeyGeneratorFunc[T]
+	MaxCunt      int
+	EmitDuration time.Duration
+}
+
+type OptFunc[T any] func(o *Opt[T])
+
+func newWriter[T any](w io.Writer, opt *Opt[T]) *writer[T] {
+	rw := &writer[T]{
+		containers:           map[string]*container[T]{},
+		maxCount:             opt.MaxCunt,
+		emitDuration:         opt.EmitDuration,
+		aggregatedLogStrPipe: make(chan string, 1024),
+		w:                    w,
+	}
+
+	switch opt.Format {
+	case "json":
+		rw.parse = jsonParser[T]
+	}
+	rw.keyGenerate = opt.KeyGenerator
+
+	go rw.emit()
+
+	return rw
 }
 
 type writer[T any] struct {
+	w                    io.Writer
 	containers           map[string]*container[T]
 	parse                ParserFunc[T]
 	keyGenerate          KeyGeneratorFunc[T]
 	maxCount             int
 	emitDuration         time.Duration
-	aggregatedLogStrPipe chan<- string
+	aggregatedLogStrPipe chan string
+}
+
+func (impl *writer[T]) emit() {
+	for {
+		str, ok := <-impl.aggregatedLogStrPipe
+		if ok {
+			_, err := impl.w.Write([]byte(str))
+			if err != nil {
+				log.Println(err)
+			}
+		}
+	}
 }
 
 func (impl *writer[T]) Write(b []byte) (int, error) {

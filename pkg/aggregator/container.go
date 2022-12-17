@@ -30,13 +30,16 @@ func (impl *containerOpt) getEmitDuration() time.Duration {
 }
 
 func newContainer[T any](pipe chan<- string, opt *containerOpt) *container[T] {
-	return &container[T]{
+	c := &container[T]{
 		mut:                  sync.Mutex{},
 		elems:                []*T{},
 		aggregatedLogStrPipe: pipe,
 		maxCount:             opt.getMaxCount(),
 		emitDuration:         opt.getEmitDuration(),
 	}
+	go c.emitUseDuration()
+
+	return c
 }
 
 type container[T any] struct {
@@ -47,10 +50,10 @@ type container[T any] struct {
 	emitDuration         time.Duration
 }
 
-func (impl *container[T]) add(t T) {
+func (impl *container[T]) add(t *T) {
 	impl.mut.Lock()
 	defer impl.mut.Unlock()
-	impl.elems = append(impl.elems, &t)
+	impl.elems = append(impl.elems, t)
 	if len(impl.elems) < impl.maxCount {
 		return
 	}

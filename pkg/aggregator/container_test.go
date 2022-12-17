@@ -156,7 +156,7 @@ func TestContainer_add(t *testing.T) {
 			testContainer := newContainer[string](make(chan string, 1024), test.opt)
 
 			for _, v := range test.in {
-				testContainer.add(v)
+				testContainer.add(&v)
 			}
 
 			assert.Equal(t, test.want, len(testContainer.elems))
