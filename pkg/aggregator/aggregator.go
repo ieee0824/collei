@@ -19,7 +19,7 @@ func New[T any](w io.Writer, optFs ...OptFunc[T]) Aggregator[T] {
 	// set default
 	op := &Opt[T]{
 		Format:       "json",
-		MaxCunt:      10,
+		MaxCnt:       10,
 		EmitDuration: 1 * time.Minute,
 		KeyGenerator: func(t *T) (string, error) {
 			return fmt.Sprint(*t), nil

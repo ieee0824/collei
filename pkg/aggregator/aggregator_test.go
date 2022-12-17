@@ -25,7 +25,7 @@ func TestNew(t *testing.T) {
 		{
 			name: "max countを指定する",
 			opt: func(o *Opt[string]) {
-				o.MaxCunt = 100
+				o.MaxCnt = 100
 			},
 			want: &writer[string]{
 				maxCount:     100,

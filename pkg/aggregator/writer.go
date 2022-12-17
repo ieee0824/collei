@@ -20,7 +20,7 @@ func jsonParser[T any](b []byte) (*T, error) {
 type Opt[T any] struct {
 	Format       string
 	KeyGenerator KeyGeneratorFunc[T]
-	MaxCunt      int
+	MaxCnt       int
 	EmitDuration time.Duration
 }
 
@@ -29,7 +29,7 @@ type OptFunc[T any] func(o *Opt[T])
 func newWriter[T any](w io.Writer, opt *Opt[T]) *writer[T] {
 	rw := &writer[T]{
 		containers:           map[string]*container[T]{},
-		maxCount:             opt.MaxCunt,
+		maxCount:             opt.MaxCnt,
 		emitDuration:         opt.EmitDuration,
 		aggregatedLogStrPipe: make(chan string, 1024),
 		w:                    w,

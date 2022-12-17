@@ -75,7 +75,7 @@ func TestWriter_Write(t *testing.T) {
 
 func TestNewWriter(t *testing.T) {
 	w := newWriter(new(bytes.Buffer), &Opt[string]{
-		MaxCunt:      10,
+		MaxCnt:       10,
 		EmitDuration: 1 * time.Minute,
 	})
 	assert.NotNil(t, w.containers)
