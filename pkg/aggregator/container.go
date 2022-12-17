@@ -3,7 +3,6 @@ package aggregator
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"sync"
 	"time"
 
@@ -79,23 +78,21 @@ func (impl *container[T]) emitUseDuration() {
 	}
 }
 
+type output struct {
+	Key  string `json:"key"`
+	Logs any    `json:"logs"`
+}
+
 func (impl *container[T]) string() string {
 	if len(impl.elems) == 0 {
 		return ""
 	}
 
-	strs := lo.Map(impl.elems, func(e *T, _ int) string {
-		if e == nil {
-			return ""
-		}
-
-		return fmt.Sprintf("%v", *e)
-	})
-
 	buf := new(bytes.Buffer)
-	json.NewEncoder(buf).Encode(map[string][]string{
-		impl.key: lo.Filter(strs, func(s string, _ int) bool {
-			return s != ""
+	json.NewEncoder(buf).Encode(&output{
+		Key: impl.key,
+		Logs: lo.Filter(impl.elems, func(e *T, _ int) bool {
+			return e != nil
 		}),
 	})
 
