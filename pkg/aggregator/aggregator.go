@@ -1,8 +1,11 @@
 package aggregator
 
 import (
+	"fmt"
 	"io"
 	"time"
+
+	"github.com/samber/lo"
 )
 
 type ParserFunc[T any] func([]byte) (*T, error)
@@ -12,14 +15,18 @@ type Aggregator[T any] interface {
 	io.Writer
 }
 
-func New[T any](w io.Writer, opt ...OptFunc[T]) Aggregator[T] {
+func New[T any](w io.Writer, optFs ...OptFunc[T]) Aggregator[T] {
+	// set default
 	op := &Opt[T]{
 		Format:       "json",
 		MaxCunt:      10,
 		EmitDuration: 1 * time.Minute,
+		KeyGenerator: func(t *T) (string, error) {
+			return fmt.Sprint(*t), nil
+		},
 	}
-	for _, f := range opt {
-		f(op)
-	}
+	lo.ForEach(optFs, func(optF OptFunc[T], _ int) {
+		optF(op)
+	})
 	return newWriter(w, op)
 }
