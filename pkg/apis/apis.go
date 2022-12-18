@@ -7,19 +7,25 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/ieee0824/collei/pkg/handler"
 	"github.com/ieee0824/collei/pkg/handlers/in"
+	"github.com/ieee0824/collei/pkg/logs"
 	"github.com/samber/lo"
 )
 
 func New(w io.Writer) *APIs {
+	ls := logs.Logs{}
 	return &APIs{
 		handlers: []handler.Handler{
-			in.New(w),
+			in.New(w, func(opt *in.Opt) {
+				opt.Logs = ls
+			}),
 		},
+		logs: ls,
 	}
 }
 
 type APIs struct {
 	handlers []handler.Handler
+	logs     logs.Logs
 }
 
 func (impl *APIs) RegistHandlers(engine *gin.Engine) {

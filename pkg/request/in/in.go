@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 
 	"github.com/gin-gonic/gin"
+	"github.com/ieee0824/collei/pkg/logs"
 )
 
 type PostRequest struct {
-	Tag  string `json:"tag"`
-	Body []byte `json:"body"`
+	Tag  logs.Tag `json:"tag"`
+	Body []byte   `json:"body"`
 }
 
 func New(ctx *gin.Context) (*PostRequest, error) {

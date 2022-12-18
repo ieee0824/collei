@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/ieee0824/collei/pkg/collei/option"
+	"github.com/ieee0824/collei/pkg/logs"
 	"github.com/ieee0824/collei/pkg/request/in"
 	"github.com/samber/lo"
 )
@@ -42,7 +43,7 @@ type Collie interface {
 
 type client struct {
 	endpoint string
-	tag      string
+	tag      logs.Tag
 }
 
 func (c *client) Write(b []byte) (int, error) {

@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/ieee0824/collei/pkg/aggregator"
 	"github.com/ieee0824/collei/pkg/handler"
+	"github.com/ieee0824/collei/pkg/logs"
 	"github.com/ieee0824/collei/pkg/request/in"
 	"github.com/samber/lo"
 )
@@ -17,6 +18,7 @@ import (
 type Opt struct {
 	EmitCount    int
 	EmitDuration time.Duration
+	Logs         logs.Logs
 }
 
 type OptFunc func(opt *Opt)
@@ -33,7 +35,7 @@ func New(w io.Writer, of ...OptFunc) *In {
 		emitCount:    opt.EmitCount,
 		emitDuration: opt.EmitDuration,
 		out:          w,
-		w:            make(map[string]io.Writer),
+		logs:         opt.Logs,
 	}
 }
 
@@ -41,8 +43,8 @@ type In struct {
 	emitCount    int
 	emitDuration time.Duration
 	out          io.Writer
-	w            map[string]io.Writer
 	handler.Handler
+	logs logs.Logs
 }
 
 func (impl *In) Methods() []string {
@@ -70,9 +72,9 @@ func (impl *In) Post(ctx *gin.Context) {
 		return
 	}
 
-	_, ok := impl.w[req.Tag]
+	_, ok := impl.logs[req.Tag]
 	if !ok {
-		impl.w[req.Tag] = aggregator.New(impl.out, func(o *aggregator.Opt[map[string]any]) {
+		impl.logs[req.Tag] = aggregator.New(impl.out, func(o *aggregator.Opt[map[string]any]) {
 			o.MaxCnt = impl.emitCount
 			o.EmitDuration = impl.emitDuration
 			o.KeyGenerator = func(t *map[string]any) (string, error) {
@@ -88,6 +90,6 @@ func (impl *In) Post(ctx *gin.Context) {
 			}
 		})
 	}
-	impl.w[req.Tag].Write(req.Body)
+	impl.logs[req.Tag].Write(req.Body)
 	ctx.JSON(http.StatusOK, "success")
 }
